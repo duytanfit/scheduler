@@ -1,9 +1,9 @@
 import hashlib
 import jwt
 import datetime
-from database.db import db
-class UsersModel(db.Model):
-    __tablename__ = "users"
+from database.dbtest import db
+class UsersModelTest(db.Model):
+    __tablename__ = "users_test"
 
     # thuộc tính
     id = db.Column(db.Integer, primary_key=True)
@@ -15,12 +15,6 @@ class UsersModel(db.Model):
     address = db.Column(db.String(100))
     phone_number = db.Column(db.String(20))
     birthday = db.Column(db.DateTime)
-    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
-
-    #relationship
-    events = db.relationship('events', backref='users', lazy=True)
-    events_users = db.relationship('events_users', backref='users', lazy=True)
-    roles_users = db.relationship('roles_users', backref='users', lazy=True)
 
     @classmethod
     def find_user_by_username(cls, user_name):
@@ -45,7 +39,7 @@ class UsersModel(db.Model):
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }

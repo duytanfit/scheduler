@@ -25,10 +25,16 @@
             ],
             "styles": [
               "src/styles.css",
-              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler.css"
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/font-awesome/css/font-awesome.css",
+              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler_material.css"
             ],
             "scripts": [
-              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler.js"
+              "node_modules/jquery/dist/jquery.slim.min.js",
+              "node_modules/popper.js/dist/umd/popper.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.min.js",
+              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler.js",
+              "node_modules/dhtmlx-scheduler/codebase/ext/dhtmlxscheduler_multiselect.js"
             ]
           },
           "configurations": {

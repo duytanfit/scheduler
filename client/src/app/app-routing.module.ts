@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import {CommonModule} from '@angular/common'
+import { FormsModule} from '@angular/forms';
 
 import {ScheduleComponent} from './Components/Pages/schedule/schedule.component'
 import {DepartmentScheduleComponent} from './Components/Pages/department_schedule/department_schedule.component'
@@ -8,15 +9,20 @@ import {DeviceScheduleComponent} from './Components/Pages/device_schedule/device
 import {LoginComponent} from './Components/Pages/login/login.component'
 import {DashboardComponent} from './Components/Pages/dashboard/dashboard.component'
 import {ProfileComponent} from './Components/Pages/profile/profile.component'
+import {StatusComponent} from './Components/Pages/status/status.component'
 
+import { EnsureAuthenticated } from './Services/ensure-authenticated.service';
+import { LoginRedirect } from './Services/login-redirect.service';
+import { AuthService } from './Services/auth.service';
 const routes: Routes = [
-  {path:'schedule', component: ScheduleComponent},
-  {path:'department', component: DepartmentScheduleComponent},
-  {path:'device', component:DeviceScheduleComponent},
+  {path:'schedule', component: ScheduleComponent, canActivate: [EnsureAuthenticated]},
+  {path:'department', component: DepartmentScheduleComponent, canActivate: [EnsureAuthenticated]},
+  {path:'device', component:DeviceScheduleComponent, canActivate: [EnsureAuthenticated]},
   {path:'dashboard', component: DashboardComponent},
-  {path:'login', component: LoginComponent},
-  {path:'profile', component: ProfileComponent},
-  {path: '**', component:ScheduleComponent}
+  {path:'login', component: LoginComponent, canActivate: [LoginRedirect]},
+  {path:'profile', component: ProfileComponent, canActivate: [EnsureAuthenticated]},
+  {path:'status', component: StatusComponent, canActivate: [EnsureAuthenticated]},
+  {path: '**', component:ScheduleComponent, canActivate: [EnsureAuthenticated]}
 ];
 
 @NgModule({
@@ -26,11 +32,18 @@ const routes: Routes = [
     DeviceScheduleComponent,
     DashboardComponent,
     LoginComponent,
-    ProfileComponent
+    ProfileComponent,
+    StatusComponent
   ],
   imports: [
     RouterModule.forRoot(routes),
-    CommonModule
+    CommonModule,
+    FormsModule
+  ],
+  providers:[
+    AuthService,
+    EnsureAuthenticated,
+    LoginRedirect
   ],
   exports: [RouterModule]
 })

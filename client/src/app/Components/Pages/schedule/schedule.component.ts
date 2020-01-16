@@ -22,16 +22,21 @@ export class ScheduleComponent implements OnInit {
         scheduler.config.full_day = true;
         scheduler.config.xml_date = '%Y-%m-%d %H:%i';      
 
-        
-
+        var data2
+        this.eventService.get2().subscribe(data=>{
+            console.log(data);
+            data2 = data;
+        })
+        console.log(data2);
 			scheduler.config.lightbox.sections = [	
 				{name:"description", height:50, map_to:"text", type:"textarea" , focus:true},
         
-                {name:"type", height:30, map_to:"type", type:"select",  options:[
-					{key:1, label:"Simple"},
-					{key:2, label:"Complex"},
-					{key:3, label:"Unknown"}
-				]},
+                // {name:"type", height:30, map_to:"type", type:"select",  options:[
+				// 	{key:1, label:"Simple"},
+				// 	{key:2, label:"Complex"},
+				// 	{key:3, label:"Unknown"}
+                // ]},
+                {name:"type", height:30, map_to:"type", type:"select",  options:data2},
 				{name:"time", height:72, type:"time", map_to:"auto"}	
             ];
             

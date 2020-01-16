@@ -19,9 +19,14 @@ import 'rxjs/add/operator/toPromise';
 @Injectable()
 export class EventService {
     private eventUrl = 'http://localhost:5000/api/events';
+    private eventUrl2 = 'http://localhost:5000/api/events/users';
     constructor(private http: HttpClient) {}
 
     get(){
         return this.http.get(this.eventUrl)
+    }
+
+    get2(){
+        return this.http.get(this.eventUrl2)
     }
 }
