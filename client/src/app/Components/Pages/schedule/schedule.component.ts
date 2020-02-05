@@ -1,5 +1,6 @@
 import {Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from "@angular/core";
 import "dhtmlx-scheduler";
+import {DatePipe} from '@angular/common'
 import {MyCalendarService} from '../../../Services/mycalendar.service';
 import { Router } from '@angular/router';
 import {User} from '../../../Models/user'
@@ -13,27 +14,27 @@ declare let dhtmlx: any;
     selector: "schedule",
     styleUrls: ['schedule.component.css'],
     templateUrl: 'schedule.component.html',
-    providers: [ MyCalendarService ]
+    providers: [ MyCalendarService, DatePipe ]
 })
 
 export class ScheduleComponent implements OnInit {
     event: Event = new Event();
-    constructor(private router: Router, private mycalendar: MyCalendarService) {}
+    constructor(private router: Router, private mycalendar: MyCalendarService, datePipe: DatePipe) {}
 
     @ViewChild("scheduler_here", {static:true}) schedulerContainer: ElementRef;
     
     ngOnInit() {
        
         scheduler.config.prevent_cache = true;
-		scheduler.config.first_hour=4;
+		// scheduler.config.first_hour=4;
 		scheduler.config.limit_time_select = true;
 		scheduler.config.details_on_create=true;
         scheduler.config.details_on_dblclick=true;
-
+        // scheduler.config.server_utc = true;
         scheduler.config.full_day = true;
         scheduler.config.xml_date = '%Y-%m-%d %H:%i';    
-       
-        
+
+
         scheduler.config.lightbox.sections = [
             { name:"text", height:50, map_to:"text", type:"textarea", focus:true },
             { name:"multi", height:40, map_to:"users", type:'multiselect', options: scheduler.serverList("users"), vertical: false },
@@ -42,15 +43,10 @@ export class ScheduleComponent implements OnInit {
             { name:"time", height:72, type:"time", map_to:"auto"}
         ];
 
-
-      
-        scheduler.init(this.schedulerContainer.nativeElement, new Date(2020, 8, 1));
+        scheduler.init(this.schedulerContainer.nativeElement, new Date(2020, 2, 4));
         
-
-
+        // doi id su kien mac dinh thanh id su kien theo database
         scheduler.attachEvent("onEventAdded", (id, ev) => {
-           
-           
             console.log(ev)
             this.mycalendar.insertEvent(ev)
                 .then((response)=> {
@@ -65,12 +61,25 @@ export class ScheduleComponent implements OnInit {
             this.mycalendar.updateEvent(ev);
         });
 
-        scheduler.attachEvent("onEventDeleted", (id) => {
+        // scheduler.attachEvent("onConfirmedBeforeEventDelete", function(id,e){
+        //     this.mycalendar.deleteEvent(id).then((response)=>{
+        //         if (response.action == 'deleted'){
+        //             scheduler.deleteEvent(id);
+        //         }
+
+        //     })
+        //     return true;
+        // });
+
+
+        scheduler.attachEvent("onBeforeEventDelete", (id) => {
             this.mycalendar.deleteEvent(id).then(()=>{
                 this.xuatthongbao();
+                return true;
             }).catch((err)=>{
-                this.xuatthongbao();
+                this.baoloi();
                 console.log(err);
+                return false;
             })
         })
        
@@ -85,7 +94,16 @@ export class ScheduleComponent implements OnInit {
 
     private xuatthongbao(){
         dhtmlx.message({
-            text: "Right-click on event to see the menu",
+            text: "Da xoa su kien",
+            expire: 1000*3,
+            position: "top"
+    
+        });
+    }
+
+    private baoloi(){
+        dhtmlx.message({
+            text: "Da xay ra loi",
             expire: 1000*3,
             position: "top"
     

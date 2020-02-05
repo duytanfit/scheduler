@@ -8,15 +8,15 @@ class DevicesModel(db.Model):
     type_id = db.Column(db.Integer, db.ForeignKey('types.id'), nullable=False)
 
     #relationship
-    events_devices = db.relationship('events_devices', backref='devices', lazy=True)
+    # events_devices = db.relationship('events_devices', back_populates='devices', lazy=True)
 
     # khởi tạo
     def __init__(self, name, code):
         self.name = name
         self.code = code
 
-    def __repr__(self):
-        return '<Devicename %r>' % self.name
+    # def __repr__(self):
+    #     return '<Devicename %r>' % self.name
 
 
 

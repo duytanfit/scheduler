@@ -8,8 +8,8 @@ class TypesModel(db.Model):
     prefix = db.Column(db.String(10))
 
     # relationship
-    devices = db.relationship('devices', backref='types', lazy=True)
-
+    # devices = db.relationship('devices', backref='types', lazy=True)
+    devices = db.relationship('DevicesModel')
     # khởi tạo
     def __init__(self, name, prefix):
         self.name = name

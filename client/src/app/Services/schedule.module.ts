@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Event} from '../Models/event';
 import {HandleError} from '../Services/service-helper'
+import {DatePipe} from '@angular/common'
 import 'rxjs/add/operator/toPromise';
 // export class ScheduleSevice{
 //     constructor(private http: HttpClient){}

@@ -8,7 +8,7 @@ class RolesModel(db.Model):
     des = db.Column(db.String(255))
 
     #relationship
-    roles_users = db.relationship('roles_users', backref='roles', lazy=True)
+    roles_users = db.relationship('RolesUsersModel')
 
     # khởi tạo
     def __init__(self, name, des="NULL"):

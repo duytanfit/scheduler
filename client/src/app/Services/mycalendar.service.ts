@@ -8,7 +8,7 @@ import 'rxjs/add/operator/toPromise';
 export class MyCalendarService {
     private BASE_URL: string = 'http://localhost:5000/api/mycalendar/events';
     private headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
-   
+    
     constructor(private http: HttpClient) {}
 
     getEvents(event: Event): Promise<any> {

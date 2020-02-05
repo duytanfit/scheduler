@@ -1,6 +1,6 @@
 from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
-from models.users_test import UsersModelTest
+from models.users import UsersModel
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -15,7 +15,7 @@ class LoginAPI(MethodView):
         try:
             # fetch the user data
             print("hello")
-            user = UsersModelTest.find_user_by_username(post_data.get('user_name'))
+            user = UsersModel.find_user_by_username(post_data.get('user_name'))
             if user:
                 auth_token = user.encode_auth_token(user.id)
                 if auth_token:
@@ -52,9 +52,9 @@ class UserAPI(MethodView):
         else:
             auth_token = ''
         if auth_token:
-            resp = UsersModelTest.decode_auth_token(auth_token)
+            resp = UsersModel.decode_auth_token(auth_token)
             if not isinstance(resp, str):
-                user = UsersModelTest.query.filter_by(id=resp).first()
+                user = UsersModel.query.filter_by(id=resp).first()
                 responseObject = {
                     'status': 'success',
                     'data': {
@@ -79,6 +79,7 @@ class UserAPI(MethodView):
 
 login_view = LoginAPI.as_view('login_api')
 user_view = UserAPI.as_view('user_api')
+
 auth_blueprint.add_url_rule(
     '/auth/login',
     view_func=login_view,

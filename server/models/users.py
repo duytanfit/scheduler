@@ -6,7 +6,7 @@ class UsersModel(db.Model):
     __tablename__ = "users"
 
     # thuộc tính
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_name = db.Column(db.String(20), primary_key=True)
     password = db.Column(db.String(255))
     last_name = db.Column(db.String(20))
@@ -18,9 +18,7 @@ class UsersModel(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=True)
 
     #relationship
-    events = db.relationship('events', backref='users', lazy=True)
-    events_users = db.relationship('events_users', backref='users', lazy=True)
-    roles_users = db.relationship('roles_users', backref='users', lazy=True)
+    events = db.relationship('EventsModel')
 
     @classmethod
     def find_user_by_username(cls, user_name):
