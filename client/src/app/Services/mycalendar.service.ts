@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {DatePipe} from '@angular/common'
 import {Event} from '../Models/event';
 import { User } from '../Models/user';
 import 'rxjs/add/operator/toPromise';
@@ -9,7 +10,9 @@ export class MyCalendarService {
     private BASE_URL: string = 'http://localhost:5000/api/mycalendar/events';
     private headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
     
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private datePipe: DatePipe) {
+        
+    }
 
     getEvents(event: Event): Promise<any> {
         let url: string = this.BASE_URL;
@@ -28,6 +31,9 @@ export class MyCalendarService {
 
     insertEvent(event: Event): Promise<any> {
         let url: string = this.BASE_URL;
+        console.log("hello troi oi " + event.start_date)
+        
+      
         return this.http.post(url,event,{headers: this.headers}).toPromise();
     }
 

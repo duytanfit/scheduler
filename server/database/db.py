@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy()
+db = SQLAlchemy(use_native_unicode='utf8')
 from models.devices import DevicesModel
 from models.types import TypesModel
 from models.departments import DepartmentsModel

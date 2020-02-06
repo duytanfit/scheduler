@@ -20,10 +20,6 @@ class UsersModel(db.Model):
     #relationship
     events = db.relationship('EventsModel')
 
-    @classmethod
-    def find_user_by_username(cls, user_name):
-        return cls.query.filter_by(user_name=user_name).first()
-
 
     def __init__(self, user_name, password, last_name ='NULL', first_name='NULL', email='NULL',address='NULL',
                  phone_number='NULL', birthday='NULL'):
@@ -35,6 +31,12 @@ class UsersModel(db.Model):
         self.address = address
         self.phone_number = phone_number
         self.birthday = birthday
+
+    def json(self):
+        return {
+            "value": self.id,
+            "label": self.last_name
+        }
 
     def encode_auth_token(self, user_id):
         """
@@ -70,3 +72,14 @@ class UsersModel(db.Model):
         except jwt.InvalidTokenError:
             return 'Invalid token. Please log in again.'
 
+    @classmethod
+    def get_department(cls, _id):
+        return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_user_by_username(cls, user_name):
+        return cls.query.filter_by(user_name=user_name).first()
+
+    @classmethod
+    def get_user_in_department(cls, _dep):
+        return cls.query.filter_by(department_id=_dep).all()

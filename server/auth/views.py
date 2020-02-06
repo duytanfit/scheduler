@@ -1,9 +1,8 @@
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, make_response, jsonify, session
 from flask.views import MethodView
 from models.users import UsersModel
 
 auth_blueprint = Blueprint('auth', __name__)
-
 class LoginAPI(MethodView):
     """
     User Login Resource
@@ -11,14 +10,18 @@ class LoginAPI(MethodView):
     def post(self):
         # get the post data
         post_data = request.get_json()
-        # print(post_data.get('user_name'), flush=True)
+
         try:
             # fetch the user data
             print("hello")
             user = UsersModel.find_user_by_username(post_data.get('user_name'))
+
             if user:
                 auth_token = user.encode_auth_token(user.id)
+
                 if auth_token:
+                    session['id'] = user.id
+                    print(type(session['id']))
                     responseObject = {
                         'status': 'success',
                         'message': 'Successfully logged in.',
@@ -55,12 +58,14 @@ class UserAPI(MethodView):
             resp = UsersModel.decode_auth_token(auth_token)
             if not isinstance(resp, str):
                 user = UsersModel.query.filter_by(id=resp).first()
+
                 responseObject = {
                     'status': 'success',
                     'data': {
                         'user_id': user.id,
                         'user_name': user.user_name,
-                        'first_name': user.first_name
+                        'first_name': user.first_name,
+                        'department': user.department
                     }
                 }
                 return make_response(jsonify(responseObject)), 200

@@ -15,4 +15,13 @@ class TypesModel(db.Model):
         self.name = name
         self.prefix = prefix
 
+    def json(self):
+        return {
+            "value": self.id,
+            "label": self.name
+        }
+
+    @classmethod
+    def get_all_type(cls):
+        return cls.query.all()
 
