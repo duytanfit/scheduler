@@ -41,11 +41,24 @@ export class ScheduleComponent implements OnInit {
 
         scheduler.config.lightbox.sections = [
             { name:"Content", height:50, map_to:"text", type:"textarea", focus:true },
-            { name:"Invite", height:40, map_to:"users", type:'multiselect', options: scheduler.serverList("users"), vertical: false },
-            { name:"Devices", height:72, map_to:"devices", type:'multiselect', options: scheduler.serverList("devices"), vertical: false },
-            { name:"time", height:72, type:"time", map_to:"auto"}
+            { name:"Invite", height:40, map_to:"users", type:'multiselect', options: scheduler.serverList("users"),vertical: false }
         ];
 
+        this.mycalendar.getListType().then((array)=>{
+            for(var i =0 ; i< array.length;i++){
+                console.log(array[i].prefix)
+                scheduler.config.lightbox.sections.push({ name:array[i].name, height:30, map_to:array[i].prefix, type:'multiselect', options: scheduler.serverList(array[i].prefix), vertical: false });
+            }
+        }).catch((err)=>{
+            console.log(err);
+            
+        })
+
+        // for (var i =0 ; i < json.length;i++){
+        //     scheduler.config.lightbox.sections.push({ name:array[i], height:72, map_to:array[i], type:'multiselect', options: scheduler.serverList(array[i]), script_url: this.mycalendar.getLists(), vertical: false });
+        // }
+        
+        scheduler.config.lightbox.sections.push({ name:"time", height:72, type:"time", map_to:"auto"})
         scheduler.init(this.schedulerContainer.nativeElement, new Date(2020, 2, 4));
         
         // doi id su kien mac dinh thanh id su kien theo database
@@ -74,7 +87,6 @@ export class ScheduleComponent implements OnInit {
         //     })
         //     return true;
         // });
-
 
         scheduler.attachEvent("onBeforeEventDelete", (id) => {
             this.mycalendar.deleteEvent(id).then(()=>{

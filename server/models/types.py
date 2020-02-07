@@ -9,7 +9,7 @@ class TypesModel(db.Model):
 
     # relationship
     # devices = db.relationship('devices', backref='types', lazy=True)
-    devices = db.relationship('DevicesModel')
+    devices = db.relationship('DevicesModel', backref='types', lazy=True)
     # khởi tạo
     def __init__(self, name, prefix):
         self.name = name
@@ -19,6 +19,12 @@ class TypesModel(db.Model):
         return {
             "value": self.id,
             "label": self.name
+        }
+
+    def json2(self):
+        return {
+            "prefix": self.prefix,
+            "name": self.name
         }
 
     @classmethod

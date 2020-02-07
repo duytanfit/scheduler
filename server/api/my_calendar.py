@@ -1,9 +1,12 @@
 from flask import Blueprint, render_template, jsonify, request, session
+
+from models.devices import DevicesModel
 from models.events import EventsModel
 from datetime import datetime
 import time
 import json
 import pytz
+from database.db import db
 
 from models.types import TypesModel
 from models.users import UsersModel
@@ -14,9 +17,37 @@ my_calendar_blueprint = Blueprint('my_calendar', __name__)
 def get_events():
     all_event = EventsModel.get_all_mycalendar()
     list_user = UsersModel.get_user_in_department(3)
+    temp = db.session.query(DevicesModel.id, DevicesModel.name, TypesModel.prefix).join(DevicesModel,
+                                                                        DevicesModel.type_id == TypesModel.id).all()
+    temp2 = list(db.session.query(TypesModel.prefix).all())
+
+    data = {}
+    for e in temp2:
+        data[e.prefix] = []
+
+    for a in temp:
+        if a.prefix in data:
+            data[a.prefix].append({'value': a.id, 'label': a.name})
+    print(json.dumps(data))
+
+    return jsonify({'data': [e.json() for e in all_event], 'collections': data})
+
+@my_calendar_blueprint.route('/api/listtest', methods=['GET'])
+def get_listtest():
+    dict = {
+        "value": 1,
+        "label": "Interview"
+    }
+    dict2 = {
+        "value": 1,
+        "label": "Interview"
+    }
+    return jsonify([dict, dict2])
+
+@my_calendar_blueprint.route('/api/listtype', methods=['GET'])
+def get_list():
     list_type = TypesModel.get_all_type()
-    return jsonify({'data': [e.json() for e in all_event], 'collections': {'users': [u.json() for u in list_user],
-        'devices': [d.json() for d in list_type]}})
+    return jsonify([u.json2() for u in list_type])
 
 @my_calendar_blueprint.route('/api/mycalendar/events', methods=['POST'])
 def insert_event():
