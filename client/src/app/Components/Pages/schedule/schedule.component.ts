@@ -64,11 +64,10 @@ export class ScheduleComponent implements OnInit {
         // doi id su kien mac dinh thanh id su kien theo database
         scheduler.attachEvent("onEventAdded", (id, ev) => {
             console.log(ev)
-            this.datePipe.transform(ev.start_date,"yyyy-MM-dd")
             this.mycalendar.insertEvent(ev)
                 .then((response)=> {
                     if (response.id != id) {
-                        scheduler.changeEventId(id, response.id);
+                        scheduler.changeEventId(id, response.tid);
                     }
                 })
         });
@@ -78,26 +77,20 @@ export class ScheduleComponent implements OnInit {
             this.mycalendar.updateEvent(ev);
         });
 
-        // scheduler.attachEvent("onConfirmedBeforeEventDelete", function(id,e){
-        //     this.mycalendar.deleteEvent(id).then((response)=>{
-        //         if (response.action == 'deleted'){
-        //             scheduler.deleteEvent(id);
-        //         }
+        scheduler.attachEvent("onEventDeleted", (id,ev) => {
+            this.mycalendar.deleteEvent(id);
+        });
 
+        // scheduler.attachEvent("onBeforeEventDelete", (id) => {
+        //     this.mycalendar.deleteEvent(id).then(()=>{
+        //         this.xuatthongbao();
+        //         return true;
+        //     }).catch((err)=>{
+        //         this.baoloi();
+        //         console.log(err);
+        //         return false;
         //     })
-        //     return true;
-        // });
-
-        scheduler.attachEvent("onBeforeEventDelete", (id) => {
-            this.mycalendar.deleteEvent(id).then(()=>{
-                this.xuatthongbao();
-                return true;
-            }).catch((err)=>{
-                this.baoloi();
-                console.log(err);
-                return false;
-            })
-        })
+        // })
        
         this.mycalendar.getEvents(this.event)
             .then((event) => {

@@ -81,5 +81,5 @@ class UsersModel(db.Model):
         return cls.query.filter_by(user_name=user_name).first()
 
     @classmethod
-    def get_user_in_department(cls, _dep):
-        return cls.query.filter_by(department_id=_dep).all()
+    def get_user_in_department(cls, _dep, _id):
+        return cls.query.filter(department_id =_dep).all()

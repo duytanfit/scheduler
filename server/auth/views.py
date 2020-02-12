@@ -20,8 +20,8 @@ class LoginAPI(MethodView):
                 auth_token = user.encode_auth_token(user.id)
 
                 if auth_token:
-                    session['id'] = user.id
-                    print(type(session['id']))
+                    session['login'] = user.id
+                    print(session['login'])
                     responseObject = {
                         'status': 'success',
                         'message': 'Successfully logged in.',

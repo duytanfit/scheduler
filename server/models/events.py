@@ -36,6 +36,7 @@ class EventsModel(db.Model):
             "end_date": self.end_date.strftime('%Y-%m-%d %H:%M')
         }
 
+
     # lưu user vào db
     def save_to_db(self):
         db.session.add(self)
@@ -54,3 +55,13 @@ class EventsModel(db.Model):
     def get_events_by_user(cls, _user_id):
         return cls.query.filter_by(user_id=_user_id).all()
 
+
+    @classmethod
+    def delete_event_by_id(cls, _id):
+        cls.query.filter_by(event_id=_id).first().delete()
+        db.session.commit()
+
+
+    @classmethod
+    def find_event_by_id(cls, _id):
+        return cls.query.filter_by(id=_id).first()
