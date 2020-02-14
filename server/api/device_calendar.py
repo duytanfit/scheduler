@@ -132,7 +132,7 @@ def put_event(event_id):
         for y in list_type:
             if post_data[y[0]] != '':
                 for i in list(map(int, post_data[y[0]].split(','))):
-                    if CheckDeviceInvalid(i, local_start_date, local_end_date) == False:
+                    if CheckDeviceInvalid2(i,event_user_device_id[0],local_start_date, local_end_date) == False:
                         return {
                                    "action": "error",
                                    "message": "device"
@@ -231,6 +231,18 @@ def CheckDeviceInvalid(device_id,start_date,end_date):
         .filter(and_(EventsDevicesModel.device_id == device_id, or_(and_(start_date <= EventsModel.start_date, end_date >= EventsModel.end_date),
                                                  and_(end_date > EventsModel.start_date, end_date < EventsModel.end_date),
                                                  and_(start_date > EventsModel.start_date, start_date < EventsModel.end_date)))).all()
+    if len(list_event_device) != 0:
+        return False
+
+    else:
+       return  True
+
+def CheckDeviceInvalid2(device_id,event_id,start_date,end_date):
+    list_event_device = db.session.query(EventsModel)\
+        .join(EventsDevicesModel, EventsModel.id == EventsDevicesModel.event_id)\
+        .filter(and_(EventsDevicesModel.device_id == device_id,EventsDevicesModel.event_id != event_id, or_(and_(start_date <= EventsModel.start_date, end_date >= EventsModel.end_date),
+                                                 and_(end_date > EventsModel.start_date, end_date < EventsModel.end_date),
+                                                 and_(start_date > EventsModel.start_date, start_date < EventsModel. end_date)))).all()
     if len(list_event_device) != 0:
         return False
 
