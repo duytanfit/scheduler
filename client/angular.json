@@ -27,8 +27,7 @@
               "src/styles.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler.css",
-              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler_material.css"
+              "node_modules/dhtmlx-scheduler/codebase/dhtmlxscheduler.css"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.slim.min.js",

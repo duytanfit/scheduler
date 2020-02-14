@@ -13,7 +13,7 @@ export class AuthService {
     let url: string = `${this.BASE_URL}/login`;
     return this.http.post(url, user, {headers: this.headers}).toPromise();
   }
-
+  
   ensureAuthenticated(token): Promise<any> {
     let url: string = `${this.BASE_URL}/status`;
     let headers: HttpHeaders = new HttpHeaders({

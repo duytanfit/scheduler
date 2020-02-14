@@ -41,7 +41,7 @@ export class ScheduleComponent implements OnInit {
 
         scheduler.config.lightbox.sections = [
             { name:"Content", height:50, map_to:"text", type:"textarea", focus:true },
-            { name:"Invite", height:40, map_to:"users", type:'multiselect', options: scheduler.serverList("users"),vertical: false }
+            { name:"Invite", height:30, map_to:"users", type:'multiselect', options: scheduler.serverList("users"),vertical: false }
         ];
 
         this.mycalendar.getListType().then((array)=>{

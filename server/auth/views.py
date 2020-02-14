@@ -65,7 +65,7 @@ class UserAPI(MethodView):
                         'user_id': user.id,
                         'user_name': user.user_name,
                         'first_name': user.first_name,
-                        'department': user.department
+                        'department_id': user.department_id
                     }
                 }
                 return make_response(jsonify(responseObject)), 200

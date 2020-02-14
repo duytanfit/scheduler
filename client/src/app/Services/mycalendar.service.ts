@@ -8,19 +8,14 @@ import 'rxjs/add/operator/toPromise';
 @Injectable()
 export class MyCalendarService {
     private BASE_URL: string = 'http://localhost:5000/api/mycalendar/events';
-    private BASE_URL2: string = 'http://localhost:5000/api/listtest';
+    private BASE_URL2: string = 'http://localhost:5000/api/listtype';
     private headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
     
     constructor(private http: HttpClient, private datePipe: DatePipe) {
         
     }
-    getLists(): Promise<any> {
-        let url: string = this.BASE_URL2;
-        return this.http.get(url,{headers: this.headers}).toPromise();
-    }
-
     getListType(): Promise<any> {
-        let url: string = 'http://localhost:5000/api/listtype';
+        let url: string = this.BASE_URL2
         return this.http.get(url,{headers: this.headers}).toPromise();
     }
 

@@ -65,3 +65,11 @@ class EventsModel(db.Model):
     @classmethod
     def find_event_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+        # cập nhật theo id
+
+    @classmethod
+    def update_event_by_id(cls, _id, _start_date, _end_date, _text, _user_id, _department_id):
+        cls.query.filter_by(id=_id).update({cls.text: _text, cls.start_date: _start_date, cls.end_date: _end_date,
+                                            cls.user_id: _user_id, cls.department_id: _department_id})
+        db.session.commit()

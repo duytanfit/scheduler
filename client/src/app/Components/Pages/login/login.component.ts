@@ -17,8 +17,11 @@ export class LoginComponent {
     this.auth.login(this.user)
     .then((user) => {
       console.log(user.auth_token);
-      localStorage.setItem('token', user.auth_token);
-      this.router.navigateByUrl('/');
+      if (user.status == 'success'){
+        localStorage.setItem('token', user.auth_token);
+        this.router.navigateByUrl('/');
+      }
+      
     })
     .catch((err) => {
       console.log(err);

@@ -23,3 +23,7 @@ class EventsDevicesModel(db.Model):
     @classmethod
     def find_event_by_id(cls, _id):
         return cls.query.filter_by(event_id=_id).all()
+
+    @classmethod
+    def find_event_device_by_id(cls, _id):
+        return cls.query.filter_by(id=_id).first()
