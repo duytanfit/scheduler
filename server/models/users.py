@@ -43,6 +43,11 @@ class UsersModel(db.Model):
             "userID": self.id,
             "username": self.user_name
         }
+    def json_list_user(self):
+        return {
+            "id": self.id,
+            "text": self.first_name
+        }
 
     def encode_auth_token(self, user_id):
         """
