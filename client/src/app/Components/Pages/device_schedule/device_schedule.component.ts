@@ -67,8 +67,8 @@ export class DeviceScheduleComponent implements OnInit {
                 .then((response)=> {
                     if (response.id != id) {
                         scheduler.changeEventId(id, response.tid);
-                        scheduler.clearAll();
-                        scheduler.load("http://localhost:5000/api/device-calendar/events");
+                        // scheduler.clearAll();
+                        // scheduler.load("http://localhost:5000/api/device-calendar/events");
                     }
                 })
         });
@@ -76,8 +76,8 @@ export class DeviceScheduleComponent implements OnInit {
         scheduler.attachEvent("onEventChanged", (id, ev) => {
             this.departmentcalendar.updateEvent(ev,id).then((response)=>{
                 if(response.action == 'updated'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/device-calendar/events");
+                    // scheduler.clearAll();
+                    // scheduler.load("http://localhost:5000/api/device-calendar/events");
                 }
             })
         });
@@ -85,8 +85,8 @@ export class DeviceScheduleComponent implements OnInit {
         scheduler.attachEvent("onEventDeleted", (id,ev) => {
             this.departmentcalendar.deleteEvent(id).then((response=>{
                 if(response.action == 'deleted'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/device-calendar/events");
+                    // scheduler.clearAll();
+                    // scheduler.load("http://localhost:5000/api/device-calendar/events");
                 }
             }))
         });

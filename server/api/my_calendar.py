@@ -7,7 +7,6 @@ import pytz
 from database.db import db
 from models.events_devices import EventsDevicesModel
 from models.events_users import EventsUsersModel
-
 from models.types import TypesModel
 from models.users import UsersModel
 
@@ -15,21 +14,24 @@ my_calendar_blueprint = Blueprint('my_calendar', __name__)
 
 @my_calendar_blueprint.route('/api/mycalendar/events', methods=['GET'])
 def get_events():
-    #get noi dung su kien, noi dung lightbox tu database
-    list_event = []
-    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == 3, UsersModel.id != 6).all()
+    #get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    #tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
+    '''xu li lightbox'''
+    # danh sach noi dung cua lightbox
+    data = {}
+    # danh sach user thuoc phong ban cung voi user x
+    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == depatment_id[0], UsersModel.id != user_id).all()
+    # danh sach thiet bi
     list_device = db.session.query(DevicesModel.id, DevicesModel.name, TypesModel.prefix).join(DevicesModel,
                                                                                                DevicesModel.type_id == TypesModel.id).all()
+    # danh sach loai thiet bi
     list_type = db.session.query(TypesModel.prefix).all()
 
-    x_event = db.session.query(EventsModel).filter(EventsModel.user_id == 6).all()
-
-    y_event = db.session.query(EventsModel, EventsUsersModel.member_id) \
-        .join(EventsUsersModel, EventsModel.id == EventsUsersModel.event_id) \
-        .filter(EventsUsersModel == 6).all()
-    print(y_event)
     #chuan hoa noi dung cho lightbox de truyen den client
-    data = {}
     data['users'] = []
     for e in list_type:
         data[e.prefix] = []
@@ -38,6 +40,16 @@ def get_events():
             data[a.prefix].append({'value': a.id, 'label': a.name})
     for b in list_user:
         data['users'].append({'value': b.id, 'label': b.last_name})
+
+    '''xu li event cua user'''
+    list_event = []
+    #danh sach cac su kien cua user
+    x_event = db.session.query(EventsModel).filter(EventsModel.user_id == user_id).all()
+    #danh sach cac su kien ma user duoc moi tham gia
+
+    y_event = db.session.query(EventsModel, EventsUsersModel.member_id) \
+        .join(EventsUsersModel, EventsModel.id == EventsUsersModel.event_id) \
+        .filter(EventsUsersModel.member_id == user_id).all()
 
     #chuan hoa noi dung cho su kien
     for x in x_event:
@@ -50,13 +62,13 @@ def get_events():
         data2['department_id'] = x.department_id
         list_event.append(data2)
     for x in y_event:
-        data2 = SetupContentEvent(x.id)
-        data2['id'] = x.id
-        data2['text'] = x.text
-        data2['start_date'] = x.start_date.strftime('%Y-%m-%d %H:%M')
-        data2['end_date'] = x.end_date.strftime('%Y-%m-%d %H:%M')
-        data2['user_id'] = x.user_id
-        data2['department_id'] = x.department_id
+        data2 = SetupContentEvent(x[0].id)
+        data2['id'] = x[0].id
+        data2['text'] = x[0].text
+        data2['start_date'] = x[0].start_date.strftime('%Y-%m-%d %H:%M')
+        data2['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
+        data2['user_id'] = x[0].user_id
+        data2['department_id'] = x[0].department_id
         list_event.append(data2)
     print(list_event)
     return jsonify({'data': list_event, 'collections': data})
@@ -69,8 +81,13 @@ def get_list():
 
 @my_calendar_blueprint.route('/api/mycalendar/events', methods=['POST'])
 def insert_event():
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
     post_data = request.get_json()
-    print(post_data)
     #format thoi gian
     start_date = datetime.strptime(post_data.get('start_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
     end_date = datetime.strptime(post_data.get('end_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -89,11 +106,9 @@ def insert_event():
                        "action": "error",
                        "message": "device"
                    }, 400
-    #tam thay session bang bien cu the
-    my_id = 6
-    # print(session['id'])
-    user = UsersModel.get_department(my_id)
-    event = EventsModel(local_start_date, local_end_date, post_data.get('text'), my_id, user.department_id)
+
+    user = UsersModel.get_department(user_id)
+    event = EventsModel(local_start_date, local_end_date, post_data.get('text'), user_id, user.department_id)
     event.save_to_db()
 
     #insert thiet bi su dung
@@ -115,11 +130,16 @@ def insert_event():
     }
 @my_calendar_blueprint.route('/api/mycalendar/events/<int:event_id>', methods=['PUT'])
 def put_event(event_id):
-    my_id = 6
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
     post_data = request.get_json()
     user = db.session.query(EventsModel.user_id).filter(EventsModel.id == post_data['id']).first()
     # kiem tra xem co phai la nguoi tao su kien hay khong
-    if user[0] == my_id:
+    if user[0] == user_id:
         # format thoi gian
         start_date = datetime.strptime(post_data.get('start_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
         end_date = datetime.strptime(post_data.get('end_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -139,8 +159,8 @@ def put_event(event_id):
                                }, 400
 
         # thay doi thong tin o bang event
-        EventsModel.update_event_by_id(event_id, local_start_date, local_end_date, post_data['text'], my_id,
-                                           post_data['department_id'])
+        EventsModel.update_event_by_id(event_id, local_start_date, local_end_date, post_data['text'], user_id,
+                                           depatment_id[0])
 
         # thay doi thong tin o bang events_devices va events_users
         ChangeContentEvent(post_data)
@@ -158,7 +178,12 @@ def put_event(event_id):
 
 @my_calendar_blueprint.route('/api/mycalendar/events/<int:event_id>', methods=['DELETE'])
 def delete_event(event_id):
-    my_id = 6
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
     # tim user_id cua event
     user = db.session.query(EventsModel.user_id).filter(EventsModel.id == event_id).first()
     if user == None:
@@ -167,7 +192,7 @@ def delete_event(event_id):
         }
     # neu user_id cua event la user_id hien hanh, thi tien hanh xoa noi dung o bang event_users, events_devices va events
     # (nguoi tao su kien thi xoa het)
-    if user.user_id == my_id:
+    if user.user_id == user_id:
         for a in EventsDevicesModel.find_event_by_id(event_id):
             a.remove_from_db()
         for b in EventsUsersModel.find_event_by_id(event_id):
@@ -179,9 +204,9 @@ def delete_event(event_id):
         }
     # kiem tra bang events_users co member_id la user_id hien hanh thi xoa noi dung bang events_users
     # (nguoi duoc moi vao su kien chi duoc thoat khoi su kien, k duoc xoa su kien)
-    elif user.user_id != my_id:
+    elif user.user_id != user_id:
         user2 = db.session.query(EventsUsersModel.id, EventsUsersModel.member_id)\
-            .filter(and_(EventsUsersModel.event_id == event_id, EventsUsersModel.member_id == my_id)).all()
+            .filter(and_(EventsUsersModel.event_id == event_id, EventsUsersModel.member_id == user_id)).all()
         print(user2)
         for x in user2:
             ev = EventsUsersModel.find_by_id(x.id)
@@ -263,7 +288,7 @@ def CheckDeviceInvalid(device_id,start_date,end_date):
 def CheckDeviceInvalid2(device_id,event_id,start_date,end_date):
     list_event_device = db.session.query(EventsModel)\
         .join(EventsDevicesModel, EventsModel.id == EventsDevicesModel.event_id)\
-        .filter(and_(EventsDevicesModel.device_id == device_id,EventsDevicesModel.event_id != event_id, or_(and_(start_date <= EventsModel.start_date, end_date >= EventsModel.end_date),
+        .filter(and_(EventsDevicesModel.device_id == device_id, EventsDevicesModel.event_id != event_id, or_(and_(start_date <= EventsModel.start_date, end_date >= EventsModel.end_date),
                                                  and_(end_date > EventsModel.start_date, end_date < EventsModel.end_date),
                                                  and_(start_date > EventsModel.start_date, start_date < EventsModel. end_date)))).all()
     if len(list_event_device) != 0:

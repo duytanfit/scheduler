@@ -32,7 +32,7 @@ export class NavbarComponent {
     localStorage.setItem('list_user', data.toString());
     window.location.href = '/custom'
   }
-
+  
   logoutUser(){
     //or
     //remove an key from local storage

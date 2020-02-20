@@ -64,8 +64,8 @@ export class DepartmentScheduleComponent implements OnInit {
                 .then((response)=> {
                     if (response.id != id) {
                         scheduler.changeEventId(id, response.tid);
-                        scheduler.clearAll();
-                        scheduler.load("http://localhost:5000/api/department-calendar/events");
+                        // scheduler.clearAll();
+                        // scheduler.load("http://localhost:5000/api/department-calendar/events");
                     }
                 })
         });
@@ -73,8 +73,8 @@ export class DepartmentScheduleComponent implements OnInit {
         scheduler.attachEvent("onEventChanged", (id, ev) => {
             this.departmentcalendar.updateEvent(ev,id).then((response)=>{
                 if(response.action == 'updated'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/department-calendar/events");
+                    // scheduler.clearAll();
+                    // scheduler.load("http://localhost:5000/api/department-calendar/events");
                 }
             })
         });
@@ -82,8 +82,8 @@ export class DepartmentScheduleComponent implements OnInit {
         scheduler.attachEvent("onEventDeleted", (id,ev) => {
             this.departmentcalendar.deleteEvent(id).then((response=>{
                 if(response.action == 'deleted'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/department-calendar/events");
+                    // scheduler.clearAll();
+                    // scheduler.load("http://localhost:5000/api/department-calendar/events");
                 }
             }))
         });

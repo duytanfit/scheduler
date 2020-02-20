@@ -18,26 +18,32 @@ custom_calendar_blueprint = Blueprint('custom_calendar', __name__)
 
 @custom_calendar_blueprint.route('/api/custom-calendar/search', methods=['POST'])
 def find_list():
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
+
     post_data = request.get_json()
     a = list(map(int, post_data['list_user'].split(',')))
     print(a)
-    print(post_data)
     # ramdom mau cho moi user
     data_color = {}
     x_list_user = db.session.query(UsersModel.id).filter(UsersModel.id.in_(a)).all()
-    print(x_list_user)
     for x in x_list_user:
         data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
 
     list_event = []
     # nhung su kien thuoc phong ban x
-    x_event = db.session.query(EventsModel).filter(EventsModel.id.in_(a)).all()
+    x_event = db.session.query(EventsModel).filter(EventsModel.user_id.in_(a)).all()
+
     # nhung su kien la nguoi duoc moi tham gia
     y_event = db.session.query(EventsModel, EventsUsersModel.member_id) \
         .join(EventsUsersModel, EventsModel.id == EventsUsersModel.event_id) \
         .filter(EventsUsersModel.member_id.in_(a)).all()
     # noi dung cho lightbox
-    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == 3, UsersModel.id != 6).all()
+    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == depatment_id[0], UsersModel.id != user_id).all()
     list_device = db.session.query(DevicesModel.id, DevicesModel.name, TypesModel.prefix).join(DevicesModel,
                                                                                                DevicesModel.type_id == TypesModel.id).all()
     list_type = db.session.query(TypesModel.prefix).all()
@@ -89,7 +95,10 @@ def find_list():
 
 @custom_calendar_blueprint.route('/api/custom-calendar/list-user', methods=['GET'])
 def get_list_user_search():
-    list_user = db.session.query(UsersModel).filter(UsersModel.id != 6).all()
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    list_user = db.session.query(UsersModel).filter(UsersModel.id != user_id).all()
     return jsonify([u.json_list_user() for u in list_user])
 
 @custom_calendar_blueprint.route('/api/custom-calendar/events', methods=['GET'])

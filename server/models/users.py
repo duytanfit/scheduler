@@ -20,7 +20,6 @@ class UsersModel(db.Model):
     #relationship
     events = db.relationship('EventsModel')
 
-
     def __init__(self, user_name, password, last_name ='NULL', first_name='NULL', email='NULL',address='NULL',
                  phone_number='NULL', birthday='NULL'):
         self.user_name = user_name
@@ -46,7 +45,7 @@ class UsersModel(db.Model):
     def json_list_user(self):
         return {
             "id": self.id,
-            "text": self.first_name
+            "text": self.last_name
         }
 
     def encode_auth_token(self, user_id):
@@ -56,7 +55,7 @@ class UsersModel(db.Model):
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30, seconds=5),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }

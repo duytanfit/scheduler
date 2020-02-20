@@ -8,16 +8,11 @@ class DevicesModel(db.Model):
     code = db.Column(db.String(20))
     type_id = db.Column(db.Integer, db.ForeignKey('types.id'), nullable=False)
 
-
     # khởi tạo
     def __init__(self, name, code):
         self.name = name
         self.code = code
 
-    # def __repr__(self):
-    #     return '<Devicename %r>' % self.name
-
     @classmethod
     def get_devices_by_prefix(cls):
         return cls.query.join(TypesModel, cls.type_id == TypesModel.id).all()
-

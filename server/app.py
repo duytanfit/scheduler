@@ -6,6 +6,7 @@ from api.department_calendar import department_calendar_blueprint
 from api.device_calendar import device_calendar_blueprint
 from api.custom_calendar import custom_calendar_blueprint
 from flask_cors import CORS
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:2016Unitec@localhost/schedule?charset=utf8mb4"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True

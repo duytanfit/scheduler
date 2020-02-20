@@ -18,6 +18,12 @@ device_calendar_blueprint = Blueprint('device_calendar', __name__)
 
 @device_calendar_blueprint.route('/api/device-calendar/events', methods=['GET'])
 def get_events():
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
     # ramdom mau cho moi device
     data_color = {}
     color_list_device = db.session.query(DevicesModel.id).all()
@@ -25,7 +31,7 @@ def get_events():
         data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
 
     # chuan hoa noi dung cho lightbox de truyen den client
-    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == 3, UsersModel.id != 6).all()
+    list_user = db.session.query(UsersModel).filter(UsersModel.department_id == depatment_id[0], UsersModel.id != user_id).all()
     list_device = db.session.query(DevicesModel.id, DevicesModel.name, TypesModel.prefix)\
         .join(DevicesModel, DevicesModel.type_id == TypesModel.id).all()
     list_type = db.session.query(TypesModel.prefix).all()
@@ -58,7 +64,6 @@ def get_events():
         if str(x[1].device_id) in data_color:
             x_data['color'] = data_color[str(x[1].device_id)]
         list_event.append(x_data)
-
     return jsonify({'data': list_event, 'collections': data})
 
 #truyen dong cho lightbox
@@ -69,6 +74,12 @@ def get_list_type():
 
 @device_calendar_blueprint.route('/api/device-calendar/events', methods=['POST'])
 def insert_event():
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
     post_data = request.get_json()
     #format thoi gian
     start_date = datetime.strptime(post_data.get('start_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -89,10 +100,10 @@ def insert_event():
                            }, 400
 
     #tam thay session bang bien cu the
-    my_id = 6
+
     # print(session['id'])
-    user = UsersModel.get_department(my_id)
-    event = EventsModel(local_start_date, local_end_date, post_data.get('text'), my_id, user.department_id)
+    user = UsersModel.get_department(user_id)
+    event = EventsModel(local_start_date, local_end_date, post_data.get('text'), user_id, user.department_id)
     event.save_to_db()
 
     #insert thiet bi su dung
@@ -114,12 +125,18 @@ def insert_event():
     }
 @device_calendar_blueprint.route('/api/device-calendar/events/<event_id>', methods=['PUT'])
 def put_event(event_id):
-    my_id = 6
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
+
+
     event_user_device_id = list(map(int, event_id.split('_')))
     post_data = request.get_json()
 
     # kiem tra xem co phai la nguoi tao su kien hay khong
-    if event_user_device_id[1] == my_id:
+    if event_user_device_id[1] == user_id:
         # format thoi gian
         start_date = datetime.strptime(post_data.get('start_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
         end_date = datetime.strptime(post_data.get('end_date'), '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -139,7 +156,7 @@ def put_event(event_id):
                                }, 400
 
         # thay doi thong tin o bang event
-        EventsModel.update_event_by_id(post_data['id_old'], local_start_date, local_end_date, post_data['text'], my_id,
+        EventsModel.update_event_by_id(post_data['id_old'], local_start_date, local_end_date, post_data['text'], user_id,
                                            post_data['department_id'])
 
         # thay doi thong tin o bang events_devices va events_users
@@ -157,10 +174,19 @@ def put_event(event_id):
 
 @device_calendar_blueprint.route('/api/device-calendar/events/<event_id>', methods=['DELETE'])
 def delete_event(event_id):
-    my_id = 6
+    # get user_id tu headers
+    auth_header = request.headers.get('Authorization')
+    user_id = UsersModel.decode_auth_token(auth_header.split(" ")[1])
+    # tim department_id tu user_id
+    depatment_id = db.session.query(UsersModel.department_id).filter(UsersModel.id == user_id).first()
     event_user_device_id = list(map(int, event_id.split('_')))
 
-    if event_user_device_id[1] == my_id:
+    if len(event_user_device_id) <= 1:
+        return {
+                   "action": "error"
+               }, 400
+
+    if event_user_device_id[1] == user_id:
         event_device = EventsDevicesModel.find_event_device_by_id(event_user_device_id[2])
         print(event_device)
         event_device.remove_from_db()
