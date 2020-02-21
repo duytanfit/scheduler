@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, Blueprint
 from database.db import db
 from auth.views import auth_blueprint
 from api.my_calendar import my_calendar_blueprint
@@ -21,5 +21,7 @@ app.register_blueprint(department_calendar_blueprint)
 app.register_blueprint(device_calendar_blueprint)
 app.register_blueprint(custom_calendar_blueprint)
 app.register_blueprint(auth_blueprint)
+
+
 if __name__ == '__main__':
     app.run()

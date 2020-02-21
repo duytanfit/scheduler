@@ -20,7 +20,7 @@ class UsersModel(db.Model):
     #relationship
     events = db.relationship('EventsModel')
 
-    def __init__(self, user_name, password, last_name ='NULL', first_name='NULL', email='NULL',address='NULL',
+    def __init__(self, user_name, password, last_name ='NULL', first_name='NULL', email='NULL', address='NULL',
                  phone_number='NULL', birthday='NULL'):
         self.user_name = user_name
         self.password = password

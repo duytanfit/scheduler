@@ -1,5 +1,7 @@
 from database.db import db
 from models.types import TypesModel
+
+
 class DevicesModel(db.Model):
     __tablename__ = "devices"
     # thuộc tính
