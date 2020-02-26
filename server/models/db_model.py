@@ -33,6 +33,21 @@ class Type(Base):
     name = Column(String(20))
     prefix = Column(String(10))
 
+    def __init__(self, name, prefix):
+        self.name = name
+        self.prefix = prefix
+
+    def json(self):
+        return {
+            "value": self.id,
+            "label": self.name
+        }
+
+    def list_type_json(self):
+        return {
+            "prefix": self.prefix,
+            "name": self.name
+        }
 
 class Device(Base):
     __tablename__ = 'devices'

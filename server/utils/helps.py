@@ -1,3 +1,4 @@
+import numpy as np
 import pytz
 from flask import request
 from models.users import UsersModel
@@ -22,10 +23,19 @@ class Helps:
     @staticmethod
     def config_event(user_id):
         x_event = MySql.get_event_of_user(user_id)
-
         y_event = MySql.get_event_invited_of_user(user_id)
-
         return add_device_to_event(x_event, y_event)
+
+    @staticmethod
+    def config_event_for_department(data_color, department_id):
+        x_event = MySql.get_events_in_department(department_id)
+        y_event = MySql.get_event_invited_of_department(department_id)
+        return add_device_to_event_for_department(data_color, x_event, y_event)
+
+    @staticmethod
+    def config_event_for_device(data_color):
+        event_device = MySql.get_events_of_device()
+        return add_device_to_event_for_device(data_color, event_device)
 
     @staticmethod
     def format_time(str_time):
@@ -33,30 +43,90 @@ class Helps:
         return datetime.strptime(str_time, '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=pytz.utc).astimezone(tz)
 
     @staticmethod
-    def is_check_device_Invalid(post_data, list_type, start_date, end_date):
-        for y in list_type:
-            if post_data[y[0]] != '':
-                for i in list(map(int, post_data[y[0]].split(','))):
-                    if len(MySql.get_current_device_of_event(i, start_date, end_date)) != 0:
-                        return False
-        return True
+    def is_check_device_Invalid(post_data, list_type, start_date, end_date, event_id=None):
+        if event_id is None:
+            for y in list_type:
+                if post_data[y[0]] != '':
+                    for i in list(map(int, post_data[y[0]].split(','))):
+                        if len(MySql.get_current_device_of_event(i, start_date, end_date)) != 0:
+                            return False
+            return True
+        else:
+            for y in list_type:
+                if post_data[y[0]] != '':
+                    for i in list(map(int, post_data[y[0]].split(','))):
+                        if len(MySql.get_current_device_of_event_for_update(i, event_id, start_date, end_date)) != 0:
+                            return False
+            return True
 
     @staticmethod
-    def insert_device(post_data, list_type, event):
+    def insert_data_child(post_data, list_type, event_id=None, event=None):
+        if event is None:
+            for a in MySql.get_devices_by_event_id(event_id):
+                try:
+                    MySql.remove_from_db(a)
+                except IndentationError:
+                    return False
+            for b in MySql.get_users_by_event_id(event_id):
+                try:
+                    MySql.remove_from_db(b)
+                except IndentationError:
+                    return False
 
-        for x in list_type:
-            if post_data[x[0]] != '':
-                for i in list(map(int, post_data[x[0]].split(','))):
-                    device_event = EventsDevice(event.id, i)
-                    MySql.save_to_db(device_event)
+            # insert thiet bi su dung
+            for x in list_type:
+                if post_data[x[0]] != '':
+                    for i in list(map(int, post_data[x[0]].split(','))):
+                        try:
+                            ev = EventsDevice(event_id, i)
+                            MySql.save_to_db(ev)
+                        except IndentationError:
+                            return False
 
-        # insert thanh vien tham gia
-        if post_data['users'] != '':
-            for i in list(map(int, post_data['users'].split(','))):
-                user_event = EventsUser(event.id, i)
-                MySql.save_to_db(user_event)
+            # insert thanh vien tham gia
+            if post_data['users'] != '':
+                for i in list(map(int, post_data['users'].split(','))):
+                    try:
+                        ev = EventsUser(event_id, i)
+                        MySql.save_to_db(ev)
+                    except IndentationError:
+                        return False
+            return True
+        else:
+            for x in list_type:
+                if post_data[x[0]] != '':
+                    for i in list(map(int, post_data[x[0]].split(','))):
+                        try:
+                            device_event = EventsDevice(event.id, i)
+                            MySql.save_to_db(device_event)
+                        except IndentationError:
+                            return False
 
+            # insert thanh vien tham gia
+            if post_data['users'] != '':
+                for i in list(map(int, post_data['users'].split(','))):
+                    try:
+                        user_event = EventsUser(event.id, i)
+                        MySql.save_to_db(user_event)
+                    except IndentationError:
+                        return False
+            return True
 
+    @staticmethod
+    def random_color_user(user_id, department_id):
+        data_color = {}
+        x_list_user = MySql.get_user_in_department(user_id, department_id)
+        for x in x_list_user:
+            data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
+        return data_color
+
+    @staticmethod
+    def random_color_device():
+        data_color = {}
+        color_list_device = MySql.get_device_id()
+        for x in color_list_device:
+            data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
+        return data_color
 
 
 def SetupContentEvent(event_id):
@@ -119,4 +189,56 @@ def add_device_to_event(my_event, invited_event):
         data2['user_id'] = x[0].user_id
         data2['department_id'] = x[0].department_id
         list_event.append(data2)
+    return list_event
+
+
+def add_device_to_event_for_department(data_color, my_event, invited_event):
+    list_event = []
+    for x in my_event:
+        x_data = SetupContentEvent(x.id)
+        x_data['id_old'] = x.id
+        x_data['text'] = x.text
+        x_data['start_date'] = x.start_date.strftime('%Y-%m-%d %H:%M')
+        x_data['end_date'] = x.end_date.strftime('%Y-%m-%d %H:%M')
+        x_data['user_id'] = x.user_id
+        x_data['department_id'] = x.department_id
+        x_data['own'] = x.user_id
+        x_data['id'] = '{}_{}'.format(x.id, x.user_id)
+        x_data['textColor'] = "#000000"
+        if str(x_data['own']) in data_color:
+            x_data['color'] = data_color[str(x.user_id)]
+        list_event.append(x_data)
+
+    for x in invited_event:
+        x_data = SetupContentEvent(x[0].id)
+        x_data['id_old'] = x[0].id
+        x_data['text'] = x[0].text
+        x_data['start_date'] = x[0].start_date.strftime('%Y-%m-%d %H:%M')
+        x_data['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
+        x_data['user_id'] = x[0].user_id
+        x_data['department_id'] = x[0].department_id
+        x_data['own'] = x[1]
+        x_data['id'] = '{}_{}'.format(x[0].id, x[1])
+        x_data['textColor'] = "#000000"
+        if str(x_data['own']) in data_color:
+            x_data['color'] = data_color[str(x[1])]
+        list_event.append(x_data)
+    return list_event
+
+
+def add_device_to_event_for_device(data_color, event_device):
+    list_event = []
+    for x in event_device:
+        x_data = SetupContentEvent(x[0].id)
+        x_data['id_old'] = x[0].id
+        x_data['text'] = x[0].text
+        x_data['start_date'] = x[0].start_date.strftime('%Y-%m-%d %H:%M')
+        x_data['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
+        x_data['user_id'] = x[0].user_id
+        x_data['department_id'] = x[0].department_id
+        x_data['id'] = '{}_{}_{}'.format(x[0].id, x[0].user_id, x[1].id)
+        x_data['textColor'] = "#000000"
+        if str(x[1].device_id) in data_color:
+            x_data['color'] = data_color[str(x[1].device_id)]
+        list_event.append(x_data)
     return list_event

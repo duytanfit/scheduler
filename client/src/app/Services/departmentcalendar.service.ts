@@ -8,7 +8,7 @@ import 'rxjs/add/operator/toPromise';
 @Injectable()
 export class DepartmentCalendarService {
     private BASE_URL: string = 'http://localhost:5000/api/department-calendar/events';
-    private BASE_URL2: string = 'http://localhost:5000/api/listtype';
+    private BASE_URL2: string = 'http://localhost:5000/api/list-type';
     private headers: HttpHeaders = new HttpHeaders({
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('token')}`}
