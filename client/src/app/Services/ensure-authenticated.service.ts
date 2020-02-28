@@ -14,7 +14,7 @@ export class EnsureAuthenticated implements CanActivate {
       this.router.navigateByUrl('/login');
       return false;
     }
-  }
+  } 
 
   getCurrentUser(): Promise<any> {
     let url: string = ""

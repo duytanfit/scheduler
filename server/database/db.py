@@ -1,11 +1,14 @@
-from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy(use_native_unicode='utf8')
-from models.devices import DevicesModel
-from models.types import TypesModel
-from models.departments import DepartmentsModel
-from models.roles import RolesModel
-from models.users import UsersModel
-from models.roles_users import RolesUsersModel
-from models.events import EventsModel
-from models.events_devices import EventsDevicesModel
-from models.events_users import EventsUsersModel
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from config import SQLALCHEMY_DATABASE_URI
+
+
+engine = create_engine(SQLALCHEMY_DATABASE_URI, convert_unicode=True, pool_size=10, max_overflow=20)
+db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+Base = declarative_base()
+Base.query = db_session.query_property()
+
+def init_db():
+    import models
+    Base.metadata.create_all(bind=engine)

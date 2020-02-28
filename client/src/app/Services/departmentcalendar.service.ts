@@ -40,5 +40,4 @@ export class DepartmentCalendarService {
         let url: string = this.BASE_URL;
         return this.http.post(url,event,{headers: this.headers}).toPromise();
     }
-
 }

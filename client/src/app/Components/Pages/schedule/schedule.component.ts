@@ -20,7 +20,7 @@ export class ScheduleComponent implements OnInit {
     constructor(private router: Router, private mycalendar: MyCalendarService) {}
     @ViewChild("scheduler_here", {static:true}) schedulerContainer: ElementRef;
     ngOnInit() {
-        
+        scheduler.clearAll();
         scheduler.config.prevent_cache = true;
 		scheduler.config.first_hour=6;
 		scheduler.config.limit_time_select = true;
@@ -50,28 +50,43 @@ export class ScheduleComponent implements OnInit {
             console.log(ev)
             this.mycalendar.insertEvent(ev)
                 .then((response)=> {
-                    if (response.id != id) {
-                        scheduler.changeEventId(id, response.tid);
+                    if (response.action == 'success') {
+                        scheduler.changeEventId(id, response.tid)
+                        this.notif_responce(response.message);
+                    }
+                    else{
+                        scheduler.deleteEvent(id);
+                        this.notif_responce(response.message);
                     }
                 })
         });
         scheduler.attachEvent("onEventChanged", (id, ev) => {
             console.log(ev);
-            this.mycalendar.updateEvent(ev);
+            this.mycalendar.updateEvent(ev).then((response)=>{
+                if (response.action == 'success') {
+                   
+                    this.notif_responce(response.message);
+                }
+                else{
+                    
+                    this.notif_responce(response.message);
+                }
+            })
         });
+      
+
         scheduler.attachEvent("onEventDeleted", (id,ev) => {
-            this.mycalendar.deleteEvent(id);
+            this.mycalendar.deleteEvent(id).then((response)=>{
+                if (response.action == 'success') {
+                   
+                    this.notif_responce(response.message);
+                }
+                else{
+                    
+                    this.notif_responce(response.message);
+                }
+            })
         });
-        // scheduler.attachEvent("onBeforeEventDelete", (id) => {
-        //     this.mycalendar.deleteEvent(id).then(()=>{
-        //         this.xuatthongbao();
-        //         return true;
-        //     }).catch((err)=>{
-        //         this.baoloi();
-        //         console.log(err);
-        //         return false;
-        //     })
-        // })
        
         this.mycalendar.getEvents(this.event)
             .then((event) => {
@@ -82,23 +97,16 @@ export class ScheduleComponent implements OnInit {
         });
     }
 
-    private xuatthongbao(){
-        dhtmlx.message({
-            text: "Da xoa su kien",
+    private notif_responce(message){
+        dhtmlx.message({ 
+            text: message,
             expire: 1000*3,
             position: "top"
     
         });
     }
 
-    private baoloi(){
-        dhtmlx.message({
-            text: "Da xay ra loi",
-            expire: 1000*3,
-            position: "top"
-    
-        });
-    }
+   
 
 
 }

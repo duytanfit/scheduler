@@ -64,41 +64,43 @@ export class CustomScheduleComponent implements OnInit {
             console.log(ev)
             this.customcalendar.insertEvent(ev)
                 .then((response)=> {
-                    if (response.id != id) {
-                        scheduler.changeEventId(id, response.tid);
-                        scheduler.clearAll();
-                        scheduler.load("http://localhost:5000/api/custom-calendar/events");
+                    if (response.action == 'success') {
+                        scheduler.changeEventId(id, response.tid)
+                        this.notif_responce(response.message);
+                    }
+                    else{
+                        scheduler.deleteEvent(id);
+                        this.notif_responce(response.message);
                     }
                 })
         });
 
         scheduler.attachEvent("onEventChanged", (id, ev) => {
             this.customcalendar.updateEvent(ev,id).then((response)=>{
-                if(response.action == 'updated'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/custom-calendar/events");
+                if (response.action == 'success') {
+                   
+                    this.notif_responce(response.message);
+                }
+                else{
+                   
+                    this.notif_responce(response.message);
                 }
             })
         });
 
         scheduler.attachEvent("onEventDeleted", (id,ev) => {
             this.customcalendar.deleteEvent(id).then((response=>{
-                if(response.action == 'deleted'){
-                    scheduler.clearAll();
-                    scheduler.load("http://localhost:5000/api/custom-calendar/events");
+                if (response.action == 'success') {
+                   
+                    this.notif_responce(response.message);
+                }
+                else{
+                   
+                    this.notif_responce(response.message);
                 }
             }))
         });
-        // scheduler.attachEvent("onBeforeEventDelete", (id) => {
-        //     this.mycalendar.deleteEvent(id).then(()=>{
-        //         this.xuatthongbao();
-        //         return true;
-        //     }).catch((err)=>{
-        //         this.baoloi();
-        //         console.log(err);
-        //         return false;
-        //     })
-        // })
+       
        this.list_user.list_user = localStorage.getItem('list_user');
         this.customcalendar.list_find(this.list_user)
             .then((event) => {
@@ -108,22 +110,12 @@ export class CustomScheduleComponent implements OnInit {
         console.log(err);
         });
     }
-
-    private xuatthongbao(){
-        dhtmlx.message({
-            text: "Da xoa su kien",
+    
+    private notif_responce(message){
+        dhtmlx.message({ 
+            text: message,
             expire: 1000*3,
             position: "top"
-    
-        });
-    }
-
-    private baoloi(){
-        dhtmlx.message({
-            text: "Da xay ra loi",
-            expire: 1000*3,
-            position: "top"
-    
         });
     }
 

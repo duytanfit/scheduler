@@ -35,12 +35,12 @@ def insert_event():
             MySql.save_to_db(event)
         except IndentationError:
             MySql.rollback()
-            return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: Insert database error"}
         if Helps.insert_data_child(post_data, list_type, event=event):
-            return {"action": "inserted", "tid": '{}_{}_{}'.format(event.id, user_id, '?')}
+            return {"action": "success", "tid": '{}_{}_{}'.format(event.id, user_id, '?'), "message": "Inserted"}
         else:
-            return {"action": "error"}, 400
-    return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: Insert database error"}
+    return {"action": "error", "message": "ERROR: The device has been used"}
 
 
 @device_calendar_blueprint.route('/api/device-calendar/events/<event_id>', methods=['PUT'])
@@ -61,14 +61,14 @@ def put_event(event_id):
                 MySql.save_to_db()
             except IndentationError:
                 MySql.rollback()
-                return {"action": "error"}, 400
+                return {"action": "error", "message": "ERROR: Insert database error"}
             if Helps.insert_data_child(post_data, list_type, event_id=post_data['id_old']):
-                return {"action": "updated", "tid": event_id}
+                return {"action": "success", "tid": post_data['id'], "message": "UPDATED"}
             else:
-                return {"action": "error"}, 400
+                return {"action": "error", "message": "ERROR: Insert database error"}
         else:
-            return {"action": "error"}, 400
-    return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: The device has been used"}
+    return {"action": "error", "message": "Failed to update other people's events"}
 
 
 @device_calendar_blueprint.route('/api/device-calendar/events/<event_id>', methods=['DELETE'])
@@ -78,11 +78,11 @@ def delete_event(event_id):
     user_id_of_event = MySql.get_user_id_of_event(event_own_device[0])
 
     if user_id_of_event is None:
-        return {"action": "deleted"}
+        return {"action": "success", "message": "DELETED"}
 
     if event_own_device[1] == user_id:
         event_device = MySql.get_event_device_by_id(event_own_device[2])
         MySql.remove_from_db(event_device)
         MySql.save_to_db()
-        return {"action": "deleted"}
-    return {"action": "error"}, 400
+        return {"action": "success", "message": "DELETED"}
+    return {"action": "error", "message": "Failed to delete other people's events"}

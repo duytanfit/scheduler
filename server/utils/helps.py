@@ -1,17 +1,15 @@
 import numpy as np
 import pytz
 from flask import request
-from models.users import UsersModel
 from utils.mysql import MySql, datetime
 from models.db_model import User, EventsDevice, EventsUser
-
+from auth.views import get_current_user
 
 class Helps:
     @staticmethod
     def get_user_id_from_headers():
         auth_header = request.headers.get('Authorization')
-        user_id = User.decode_auth_token(auth_header.split(" ")[1])
-        return user_id
+        return get_current_user(auth_header.split(" ")[1])['identity']
 
     @staticmethod
     def config_lightbox(user_id, department_id):
@@ -36,6 +34,12 @@ class Helps:
     def config_event_for_device(data_color):
         event_device = MySql.get_events_of_device()
         return add_device_to_event_for_device(data_color, event_device)
+
+    @staticmethod
+    def config_event_for_search(data_color, list_user):
+        x_event = MySql.get_events_in_list(list_user)
+        y_event = MySql.get_event_invited_in_list(list_user)
+        return add_device_to_event_for_department(data_color, x_event, y_event)
 
     @staticmethod
     def format_time(str_time):
@@ -128,6 +132,13 @@ class Helps:
             data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
         return data_color
 
+    @staticmethod
+    def random_color_search(list_user):
+        data_color = {}
+        x_list_user = MySql.get_users_in_list(list_user)
+        for x in x_list_user:
+            data_color['{}'.format(x.id)] = "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
+        return data_color
 
 def SetupContentEvent(event_id):
     # get id thiet bi, type thiet bi theo id su kien tu database
@@ -195,18 +206,19 @@ def add_device_to_event(my_event, invited_event):
 def add_device_to_event_for_department(data_color, my_event, invited_event):
     list_event = []
     for x in my_event:
-        x_data = SetupContentEvent(x.id)
-        x_data['id_old'] = x.id
-        x_data['text'] = x.text
-        x_data['start_date'] = x.start_date.strftime('%Y-%m-%d %H:%M')
-        x_data['end_date'] = x.end_date.strftime('%Y-%m-%d %H:%M')
-        x_data['user_id'] = x.user_id
-        x_data['department_id'] = x.department_id
-        x_data['own'] = x.user_id
-        x_data['id'] = '{}_{}'.format(x.id, x.user_id)
+        x_data = SetupContentEvent(x[0].id)
+        x_data['id_old'] = x[0].id
+        x_data['text'] = x[0].text
+        x_data['start_date'] = x[0].start_date.strftime('%Y-%m-%d %H:%M')
+        x_data['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
+        x_data['user_id'] = x[0].user_id
+        x_data['department_id'] = x[0].department_id
+        x_data['own'] = x[0].user_id
+        x_data['first_name'] = x[1]
+        x_data['id'] = '{}_{}'.format(x[0].id, x[0].user_id)
         x_data['textColor'] = "#000000"
         if str(x_data['own']) in data_color:
-            x_data['color'] = data_color[str(x.user_id)]
+            x_data['color'] = data_color[str(x[0].user_id)]
         list_event.append(x_data)
 
     for x in invited_event:
@@ -218,6 +230,7 @@ def add_device_to_event_for_department(data_color, my_event, invited_event):
         x_data['user_id'] = x[0].user_id
         x_data['department_id'] = x[0].department_id
         x_data['own'] = x[1]
+        x_data['first_name'] = x[2]
         x_data['id'] = '{}_{}'.format(x[0].id, x[1])
         x_data['textColor'] = "#000000"
         if str(x_data['own']) in data_color:
@@ -236,9 +249,45 @@ def add_device_to_event_for_device(data_color, event_device):
         x_data['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
         x_data['user_id'] = x[0].user_id
         x_data['department_id'] = x[0].department_id
+        x_data['name_device'] = x[2]
         x_data['id'] = '{}_{}_{}'.format(x[0].id, x[0].user_id, x[1].id)
         x_data['textColor'] = "#000000"
         if str(x[1].device_id) in data_color:
             x_data['color'] = data_color[str(x[1].device_id)]
         list_event.append(x_data)
     return list_event
+
+
+# def add_device_to_event_for_search(data_color, my_event, invited_event):
+#     list_event = []
+#     for x in my_event:
+#         x_data = SetupContentEvent(x.id)
+#         x_data['id_old'] = x.id
+#         x_data['text'] = x.text
+#         x_data['start_date'] = x.start_date.strftime('%Y-%m-%d %H:%M')
+#         x_data['end_date'] = x.end_date.strftime('%Y-%m-%d %H:%M')
+#         x_data['user_id'] = x.user_id
+#         x_data['department_id'] = x.department_id
+#         x_data['own'] = x.user_id
+#         x_data['id'] = '{}_{}'.format(x.id, x.user_id)
+#         x_data['textColor'] = "#000000"
+#         if str(x_data['own']) in data_color:
+#             x_data['color'] = data_color[str(x.user_id)]
+#         list_event.append(x_data)
+#
+#     for x in invited_event:
+#         x_data = SetupContentEvent(x[0].id)
+#         x_data['id_old'] = x[0].id
+#         x_data['text'] = x[0].text
+#         x_data['start_date'] = x[0].start_date.strftime('%Y-%m-%d %H:%M')
+#         x_data['end_date'] = x[0].end_date.strftime('%Y-%m-%d %H:%M')
+#         x_data['user_id'] = x[0].user_id
+#         x_data['department_id'] = x[0].department_id
+#         x_data['own'] = x[1]
+#         x_data['id'] = '{}_{}'.format(x[0].id, x[1])
+#         x_data['textColor'] = "#000000"
+#         if str(x_data['own']) in data_color:
+#             x_data['color'] = data_color[str(x[1])]
+#         list_event.append(x_data)
+#     return list_event
+

@@ -1,6 +1,3 @@
-
-
-
 import {Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from "@angular/core";
 import "dhtmlx-scheduler";
 import {DeviceCalendarService} from '../../../Services/devicecalendar.service';
@@ -23,12 +20,13 @@ declare var test: any;
 
 export class DeviceScheduleComponent implements OnInit {
     event: Event = new Event();
-    constructor(private router: Router, private departmentcalendar: DeviceCalendarService) {
+    constructor(private router: Router, private devicecalendar: DeviceCalendarService) {
     }
     
     @ViewChild("device_schedule", {static:true}) schedulerContainer: ElementRef;
     
     ngOnInit() {
+        scheduler.clearAll();
         scheduler.config.prevent_cache = true;
 		scheduler.config.first_hour=6;
 		scheduler.config.limit_time_select = true;
@@ -37,13 +35,19 @@ export class DeviceScheduleComponent implements OnInit {
         scheduler.config.server_utc = false;
         scheduler.config.full_day = true;
         scheduler.config.xml_date = '%Y-%m-%d %H:%i';    
+        var format = scheduler.date.date_to_str("%Y-%m-%d %H:%i");
+        scheduler.templates.tooltip_text = function(start,end,event) {
+            
+            return "<b>Name:</b> "+event.name_device+"<br/><b>Event:</b> "+event.text+"<br/><b>Start date:</b> "+
+            format(start)+"<br/><b>End date:</b> "+format(end);
+        };
 
         scheduler.config.lightbox.sections = [
             { name:"Content", height:50, map_to:"text", type:"textarea", focus:true },
             { name:"Invite", height:30, map_to:"users", type:'multiselect', options: scheduler.serverList("users"),vertical: false }
         ];
 
-        this.departmentcalendar.getListType().then((array)=>{
+        this.devicecalendar.getListType().then((array)=>{
             for(var i =0 ; i< array.length;i++){
                 console.log(array[i].prefix)
                 scheduler.config.lightbox.sections.push({ name:array[i].name, height:30, map_to:array[i].prefix, type:'multiselect', options: scheduler.serverList(array[i].prefix), vertical: false });
@@ -53,56 +57,70 @@ export class DeviceScheduleComponent implements OnInit {
             
         })
 
-        // for (var i =0 ; i < json.length;i++){
-        //     scheduler.config.lightbox.sections.push({ name:array[i], height:72, map_to:array[i], type:'multiselect', options: scheduler.serverList(array[i]), script_url: this.mycalendar.getLists(), vertical: false });
-        // }
-        
+    
         scheduler.config.lightbox.sections.push({ name:"time", height:72, type:"time", map_to:"auto"})
         scheduler.init(this.schedulerContainer.nativeElement, new Date(2020, 2, 4));
         
         // doi id su kien mac dinh thanh id su kien theo database
         scheduler.attachEvent("onEventAdded", (id, ev) => {
             console.log(ev)
-            this.departmentcalendar.insertEvent(ev)
+            this.devicecalendar.insertEvent(ev)
                 .then((response)=> {
-                    if (response.id != id) {
-                        scheduler.changeEventId(id, response.tid);
-                        // scheduler.clearAll();
-                        // scheduler.load("http://localhost:5000/api/device-calendar/events");
+                    if (response.action == 'success') {
+                        scheduler.changeEventId(id, response.tid)
+                        this.notif_responce(response.message);
+                    }
+                    else{
+                        scheduler.deleteEvent(id);
+                        this.notif_responce(response.message);
                     }
                 })
         });
 
         scheduler.attachEvent("onEventChanged", (id, ev) => {
-            this.departmentcalendar.updateEvent(ev,id).then((response)=>{
-                if(response.action == 'updated'){
-                    // scheduler.clearAll();
-                    // scheduler.load("http://localhost:5000/api/device-calendar/events");
+            this.devicecalendar.updateEvent(ev,id).then((response)=>{
+                if (response.action == 'success') {
+                    scheduler.clearAll();
+                    this.devicecalendar.getEvents(this.event)
+                    .then((event) => {
+                        scheduler.parse(event, "json");
+                        this.notif_responce(response.message);
+                    })
+                    .catch((err) => {
+                        this.notif_responce("refresh error");
+                    console.log(err);
+                    });
+                }
+                else{
+                    scheduler.clearAll();
+                    this.devicecalendar.getEvents(this.event)
+                    .then((event) => {
+                        scheduler.parse(event, "json");
+                        this.notif_responce(response.message);
+                    })
+                    .catch((err) => {
+                        this.notif_responce("refresh error");
+                    console.log(err);
+                    });
+                 
                 }
             })
         });
 
         scheduler.attachEvent("onEventDeleted", (id,ev) => {
-            this.departmentcalendar.deleteEvent(id).then((response=>{
-                if(response.action == 'deleted'){
-                    // scheduler.clearAll();
-                    // scheduler.load("http://localhost:5000/api/device-calendar/events");
+            this.devicecalendar.deleteEvent(id).then((response=>{
+                if (response.action == 'success') {
+                    
+                    this.notif_responce(response.message);
+                }
+                else{
+                    
+                    this.notif_responce(response.message);
                 }
             }))
         });
-
-        // scheduler.attachEvent("onBeforeEventDelete", (id) => {
-        //     this.mycalendar.deleteEvent(id).then(()=>{
-        //         this.xuatthongbao();
-        //         return true;
-        //     }).catch((err)=>{
-        //         this.baoloi();
-        //         console.log(err);
-        //         return false;
-        //     })
-        // })
        
-        this.departmentcalendar.getEvents(this.event)
+        this.devicecalendar.getEvents(this.event)
             .then((event) => {
                 scheduler.parse(event, "json");
         })
@@ -111,18 +129,9 @@ export class DeviceScheduleComponent implements OnInit {
         });
     }
 
-    private xuatthongbao(){
-        dhtmlx.message({
-            text: "Da xoa su kien",
-            expire: 1000*3,
-            position: "top"
-    
-        });
-    }
-
-    private baoloi(){
-        dhtmlx.message({
-            text: "Da xay ra loi",
+    private notif_responce(message){
+        dhtmlx.message({ 
+            text: message,
             expire: 1000*3,
             position: "top"
     

@@ -1,13 +1,9 @@
 from datetime import datetime
-
 import jwt
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-metadata = Base.metadata
+from database.db import Base
 
 
 class Department(Base):
@@ -49,6 +45,7 @@ class Type(Base):
             "name": self.name
         }
 
+
 class Device(Base):
     __tablename__ = 'devices'
 
@@ -63,8 +60,8 @@ class Device(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(INTEGER(11), primary_key=True, nullable=False)
-    user_name = Column(String(20), primary_key=True, nullable=False)
+    id = Column(INTEGER(11), primary_key=True, autoincrement=True)
+    user_name = Column(String(20), primary_key=True)
     password = Column(String(255))
     last_name = Column(String(20))
     first_name = Column(String(20))
@@ -76,8 +73,8 @@ class User(Base):
 
     department = relationship('Department')
 
-    def __init__(self, user_name, password, last_name ='NULL', first_name='NULL', email='NULL', address='NULL',
-                 phone_number='NULL', birthday='NULL'):
+    def __init__(self, user_name, password, department, last_name='NULL', first_name='NULL', email='NULL', address='NULL',
+                 phone_number='NULL', birthday=None):
         self.user_name = user_name
         self.password = password
         self.last_name = last_name
@@ -86,6 +83,7 @@ class User(Base):
         self.address = address
         self.phone_number = phone_number
         self.birthday = birthday
+        self.department_id = department
 
     def json(self):
         return {
@@ -98,45 +96,13 @@ class User(Base):
             "userID": self.id,
             "username": self.user_name
         }
+
     def json_list_user(self):
         return {
             "id": self.id,
             "text": self.last_name
         }
 
-    def encode_auth_token(self, user_id):
-        """
-        Generates the Auth Token
-        :return: string
-        """
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30, seconds=5),
-                'iat': datetime.datetime.utcnow(),
-                'sub': user_id
-            }
-            return jwt.encode(
-                payload,
-                'trithan',
-                algorithm='HS256'
-            )
-        except Exception as e:
-            return e
-
-    @staticmethod
-    def decode_auth_token(auth_token):
-        """
-        Decodes the auth token
-        :param auth_token:
-        :return: integer|string
-        """
-        try:
-            payload = jwt.decode(auth_token, 'trithan')
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            return 'Signature expired. Please log in again.'
-        except jwt.InvalidTokenError:
-            return 'Invalid token. Please log in again.'
 
 class Event(Base):
     __tablename__ = 'events'
@@ -195,7 +161,6 @@ class EventsUser(Base):
     event = relationship('Event')
     member = relationship('User')
 
-    # khởi tạo
     def __init__(self, event_id, member_id):
         self.event_id = event_id
         self.member_id = member_id

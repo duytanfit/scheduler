@@ -1,40 +1,39 @@
-from flask import Blueprint, request, make_response, jsonify, session
-from flask.views import MethodView
-from models.users import UsersModel
+from datetime import datetime
 
+from flask import Blueprint, request, make_response, jsonify, session
+from models.db_model import User
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, decode_token
+import hashlib
+from utils.mysql import MySql
+
+jwt = JWTManager()
 auth_blueprint = Blueprint('auth', __name__)
+
 
 @auth_blueprint.route('/auth/login', methods=['POST'])
 def Login():
-    # get the post data
     post_data = request.get_json()
-    try:
-        # fetch the user data
-        user = UsersModel.find_user_by_username(post_data.get('user_name'))
-        if user:
-            auth_token = user.encode_auth_token(user.id)
-            if auth_token:
-                session['login'] = user.id
-                print(session['login'])
-                responseObject = {
-                    'status': 'success',
-                    'message': 'Successfully logged in.',
-                    'auth_token': auth_token.decode()
-                }
-                return make_response(jsonify(responseObject)), 200
-        else:
-            responseObject = {
-                'status': 'fail',
-                'message': 'User does not exist.'
-            }
-            return make_response(jsonify(responseObject)), 404
-    except Exception as e:
-        print(e)
-        responseObject = {
-            'status': 'fail',
-            'message': 'Try again'
-        }
-        return make_response(jsonify(responseObject)), 500
+    username = post_data['user_name']
+    user = MySql.get_user_by_user_name(username)
+    if user and user.password == hashlib.sha256(post_data["password"].encode("utf-8")).hexdigest():
+        access_token = create_access_token(identity=user.id, expires_delta=False)
+        return jsonify(status="success", access_token=access_token), 200
+    else:
+        return jsonify(status="error", message="Usename or password is error"), 200
+
+@jwt_required
+def get_current_user(token):
+    return decode_token(token)
+
+
+@auth_blueprint.route('/auth/dangky', methods=['GET'])
+def dang_ki():
+    user = User('huynhtan06', hashlib.sha256('123456'.encode("utf-8")).hexdigest(), 2, first_name="HT06")
+    MySql.save_to_db(user)
+    print(user.password)
+    return {
+        "hello": "ok"
+    }
 
 @auth_blueprint.route('/auth/status', methods=['GET'])
 def Status():
@@ -46,9 +45,9 @@ def Status():
     else:
         auth_token = ''
     if auth_token:
-        resp = UsersModel.decode_auth_token(auth_token)
+        resp = User.decode_auth_token(auth_token)
         if not isinstance(resp, str):
-            user = UsersModel.query.filter_by(id=resp).first()
+            user = User.query.filter_by(id=resp).first()
             responseObject = {
                 'status': 'success',
                 'data': {
@@ -70,4 +69,3 @@ def Status():
             'message': 'Provide a valid auth token.'
         }
         return make_response(jsonify(responseObject)), 401
-

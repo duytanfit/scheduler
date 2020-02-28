@@ -33,12 +33,12 @@ def insert_event():
             MySql.save_to_db(event)
         except IndentationError:
             MySql.rollback()
-            return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: Insert database error"}
         if Helps.insert_data_child(post_data, list_type, event=event):
-            return {"action": "inserted", "tid": event.id}
+            return {"action": "success", "tid": event.id, "message": "Inserted"}
         else:
-            return {"action": "error"}, 400
-    return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: Insert database error"}
+    return {"action": "error", "message": "ERROR: The device has been used"}
 
 @my_calendar_blueprint.route('/api/mycalendar/events/<int:event_id>', methods=['PUT'])
 def put_event(event_id):
@@ -57,21 +57,22 @@ def put_event(event_id):
                 MySql.save_to_db()
             except IndentationError:
                 MySql.rollback()
-                return {"action": "error"}, 400
+                return {"action": "error", "message": "ERROR: Insert database error"}
             if Helps.insert_data_child(post_data, list_type, event_id=event_id):
-                return {"action": "updated", "tid": event_id}
+                return {"action": "success", "tid": event_id, "message": "UPDATED"}
             else:
-                return {"action": "error"}, 400
+                return {"action": "error", "message": "ERROR: Insert database error"}
         else:
-            return {"action": "error"}, 400
-    return {"action": "error"}, 400
+            return {"action": "error", "message": "ERROR: The device has been used"}
+
+    return {"action": "error", "message": "ERROR: Insert database error"}
 
 @my_calendar_blueprint.route('/api/mycalendar/events/<int:event_id>', methods=['DELETE'])
 def delete_event(event_id):
     user_id = Helps.get_user_id_from_headers()
     user_id_of_ev = MySql.get_user_id_of_event(event_id)
-    if user_id_of_ev == None:
-        return {"action": "deleted"}
+    if user_id_of_ev is None:
+        return {"action": "success", "message": "DELETED"}
 
     if user_id_of_ev == user_id:
         for a in MySql.get_devices_by_event_id(event_id):
@@ -81,12 +82,12 @@ def delete_event(event_id):
         ev = MySql.get_event_by_id(event_id)
         MySql.remove_from_db(ev)
         MySql.save_to_db()
-        return {"action": "deleted"}
+        return {"action": "success", "message": "DELETED"}
     else:
         a = MySql.get_event_user_by_event_member(event_id, user_id)
         MySql.remove_from_db(a)
         MySql.save_to_db()
-        return {"action": "deleted"}
+        return {"action": "success", "message": "DELETED"}
 
 
 @my_calendar_blueprint.route('/api/list-type', methods=['GET'])

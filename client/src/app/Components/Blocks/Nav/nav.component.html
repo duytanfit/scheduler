@@ -12,9 +12,9 @@
             Select
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="/schedule">My Calendar</a>
-            <a class="dropdown-item" href="/department">Department Calendar</a>
-            <a class="dropdown-item" href="/device">Devices Calendar</a>
+            <a class="dropdown-item" [routerLink]="['/schedule']">My Calendar</a>
+            <a class="dropdown-item" [routerLink]="['/department']">Department Calendar</a>
+            <a class="dropdown-item" [routerLink]="['/device']">Devices Calendar</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" routerLink="/dashboard">Dashboard</a>
           </div>

@@ -13,15 +13,17 @@ export class LoginComponent {
   user: User = new User();
   constructor(private router: Router, private auth: AuthService) {}
   onLogin(): void {
-    console.log(this.user)
     this.auth.login(this.user)
-    .then((user) => {
-      console.log(user.auth_token);
-      if (user.status == 'success'){
-        localStorage.setItem('token', user.auth_token);
+    .then((data) => {
+      console.log(data);
+      if (data.status == 'success'){
+        localStorage.setItem('token', data.access_token);
         this.router.navigateByUrl('/');
       }
-      
+      else{
+        console.log(data.message)
+        this.router.navigateByUrl('/login');
+      }
     })
     .catch((err) => {
       console.log(err);
